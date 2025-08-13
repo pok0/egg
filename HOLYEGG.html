@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comprehensive Egg Analysis Calculator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #4A90E2;
+      --primary-hover: #357ABD;
+      --background-color: #f0f4f8;
+      --card-background: #ffffff;
+      --text-color: #333;
+      --label-color: #555;
+      --border-color: #dbe2e8;
+      --error-color: #dc3545;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--background-color);
+      color: var(--text-color);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+      margin: 0;
+      box-sizing: border-box;
+    }
+    .calculator-container {
+      background-color: var(--card-background);
+      padding: 30px 40px;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      width: 100%;
+      max-width: 600px; /* Increased width for more results */
+      border: 1px solid var(--border-color);
+    }
+    h2 {
+      color: var(--text-color);
+      font-weight: 700;
+      text-align: center;
+      margin-top: 0;
+      margin-bottom: 25px;
+    }
+    .input-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--label-color);
+      font-weight: 500;
+      font-size: 14px;
+    }
+    input, select {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      background-color: #fdfdfd;
+      box-sizing: border-box;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
+    }
+    button {
+      width: 100%;
+      padding: 14px;
+      font-size: 16px;
+      font-weight: 700;
+      color: white;
+      background-color: var(--primary-color);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background-color 0.2s, transform 0.1s;
+    }
+    button:hover {
+      background-color: var(--primary-hover);
+    }
+    button:active {
+      transform: scale(0.98);
+    }
+    #result {
+      font-size: 14px;
+      margin-top: 25px;
+      color: var(--text-color);
+      word-wrap: break-word;
+      line-height: 1.8;
+      background-color: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+    }
+    .result-title {
+        font-weight: 700;
+        color: var(--text-color);
+        margin-bottom: 15px;
+        font-size: 18px;
+        text-align: center;
+    }
+    .result-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px 20px;
+    }
+    .result-item b {
+        color: var(--primary-color);
+        font-weight: 500;
+    }
+     .result-item.full-width {
+        grid-column: 1 / -1;
+    }
+    .error {
+        color: var(--error-color);
+        font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <div class="calculator-container">
+    <h2>🥚 Comprehensive Egg Analysis</h2>
+
+    <div class="input-group">
+      <label for="eggSize">Select Egg Size:</label>
+      <select id="eggSize">
+        <option value="0">Size 0</option>
+        <option value="1">Size 1</option>
+        <option value="2">Size 2</option>
+        <option value="3">Size 3</option>
+      </select>
+    </div>
+    
+    <div class="input-group">
+      <label for="eggLength">Enter Egg Length (mm):</label>
+      <input type="number" id="eggLength" step="any" placeholder="e.g., 55">
+    </div>
+
+    <div class="input-group">
+      <label for="eggWidth">Enter Egg Width (mm):</label>
+      <input type="number" id="eggWidth" step="any" placeholder="e.g., 44">
+    </div>
+
+    <button onclick="computeMetrics()">Analyze Egg</button>
+
+    <div id="result">
+        Enter dimensions and click "Analyze Egg" to see the detailed results.
+    </div>
+  </div>
+
+  <script>
+    // Data for each egg size based on the Python script
+    const eggData = [
+      { g: 0.21, t: 27.55, shellThickness: 0.053, whitePercent: 0.712, yolkPercent: 0.288, w: 69.43, p: 1.0647 }, // Size 0
+      { g: 0.21, t: 26.90, shellThickness: 0.050, whitePercent: 0.698, yolkPercent: 0.302, w: 67.07, p: 1.0645 }, // Size 1
+      { g: 0.23, t: 26.59, shellThickness: 0.050, whitePercent: 0.682, yolkPercent: 0.318, w: 61.02, p: 1.0639 }, // Size 2
+      { g: 0.22, t: 25.14, shellThickness: 0.060, whitePercent: 0.684, yolkPercent: 0.307, w: 58.21, p: 1.0636 }  // Size 3
+    ];
+    const eggShellVolumeRatio = 0.065;
+    const volumeOfAir = 0.05;
+
+    function computeMetrics() {
+      const resultEl = document.getElementById('result');
+      
+      // --- Get Inputs ---
+      const size = parseInt(document.getElementById('eggSize').value);
+      const length = parseFloat(document.getElementById('eggLength').value);
+      const width = parseFloat(document.getElementById('eggWidth').value);
+      
+      // --- Validation ---
+      if (isNaN(length) || isNaN(width) || length <= 0 || width <= 0) {
+        resultEl.innerHTML = `<span class="error">❌ Please enter valid, positive numbers for length and width.</span>`;
+        return;
+      }
+
+      // --- Calculate a and b_max from length and width ---
+      const a = length / 2.0;
+      const b_max = width / 2.0;
+
+      // --- Get Constants for selected size ---
+      const constants = eggData[size];
+      const { g, t, shellThickness, whitePercent, yolkPercent, w, p } = constants;
+      
+      if ((2 * a - t) === 0) {
+        resultEl.innerHTML = `<span class="error">❌ Error: '2a - t' cannot be zero. Adjust input values.</span>`;
+        return;
+      }
+      
+      // --- Intermediate Calculations ---
+      const b = (b_max * a) / (2 * a - t);
+      const k = 2 * (g + 0.5 * g**3) / b;
+
+      if (k * a >= 1) {
+        resultEl.innerHTML = `<span class="error">❌ Calculation constraint failed (k*a ≥ 1). Shape is not valid.</span>`;
+        return;
+      }
+
+      // --- Main Calculations ---
+      const pi = Math.PI;
+      const safe_sqrt = (x) => (x >= 0 ? Math.sqrt(x) : 0);
+
+      // Volume
+      const vol_log_arg = (1 + k * a) / (1 - k * a);
+      const vol_nat_log = Math.log(vol_log_arg);
+      const v = ((pi * (b ** 2)) / k) * ((2 / (k * a)) + ((1 - (1 / ((k ** 2) * (a ** 2)))) * vol_nat_log));
+
+      // Surface Area
+      const sa_term_A = (b / a) * (1 / (1 + k * a) - 1 / (1 - k * a));
+      const sa_term_B_inner = (5 / (5 - 3 * k * a)) * (16 / 25 + (b ** 2) * (((34 * a ** 2 * k / 25) - (6 * a / 5)) ** 2) / (4 * a ** 4 * ((1 + (3 * k * a / 5)) ** 3)));
+      const sa_term_C_inner = (5 / (5 - k * a)) * (24 / 25 + (b ** 2) * (((26 * a ** 2 * k / 25) - (2 * a / 5)) ** 2) / (4 * a ** 4 * ((1 + (k * a / 5)) ** 3)));
+      const sa_term_D_inner = (5 / (5 + 3 * k * a)) * (16 / 25 + (b ** 2) * (((34 * a ** 2 * k / 25) + (6 * a / 5)) ** 2) / (4 * a ** 4 * ((1 + (3 * k * a / 5)) ** 3)));
+      const sa_term_E_inner = (5 / (5 + k * a)) * (24 / 25 + (b ** 2) * (((26 * a ** 2 * k / 25) + (2 * a / 5)) ** 2) / (4 * a ** 4 * ((1 + (k * a / 5)) ** 3)));
+      const surface_area = (a / 5) * (sa_term_A + 2 * (safe_sqrt(sa_term_B_inner) + safe_sqrt(sa_term_C_inner) + safe_sqrt(sa_term_D_inner) + safe_sqrt(sa_term_E_inner)));
+
+       // Component & Nutrient Volumes
+      const shell_volume = surface_area * eggShellVolumeRatio;
+      const usable_egg_volume = v * (1 - volumeOfAir);
+      const edible_volume = usable_egg_volume - shell_volume;
+      const amount_of_egg_white = whitePercent * edible_volume;
+      const amount_of_egg_yolk = yolkPercent * edible_volume;
+      const amount_of_albumin = amount_of_egg_white * ((0.59 * p) / 1.03);
+      const amount_of_folic_acid = edible_volume * (((0.47 / 1e6) / 1.6) * p);
+      const amount_of_iron = edible_volume * (((0.0172 / 1e3) / 7.8) * p);
+      const amount_of_Choline = edible_volume * (((2.85 / 1e3) / 1.09) * p);
+      const amount_of_zinc = edible_volume * (((0.011 / 1e3) / 7.14) * p);
+      const amount_of_Vitamin_B12 = edible_volume * (((0.027 / 1e6) / 0.52) * p);
+
+      // --- Display Results ---
+      resultEl.innerHTML = `
+        <div class="result-title">✅ Egg Analysis Complete</div>
+        <div class="result-grid">
+          <div class="result-item full-width"><strong>Total Volume:</strong> <b>${(v/1000).toFixed(6)} ml</b></div>
+          <div class="result-item full-width"><strong>Usable Volume (no air):</strong> <b>${(usable_egg_volume/1000).toFixed(6)} ml</b></div>
+          <div class="result-item"><strong>Surface Area:</strong> <b>${surface_area.toFixed(4)} mm²</b></div>
+          <div class="result-item"><strong>Shell Volume:</strong> <b>${(shell_volume/1000).toFixed(6)} ml</b></div>
+          <div class="result-item"><strong>Edible Volume:</strong> <b>${(edible_volume/1000).toFixed(6)} ml</b></div>
+          <div class="result-item"><strong>Egg White:</strong> <b>${(amount_of_egg_white/1000).toFixed(6)} ml</b></div>
+          <div class="result-item"><strong>Egg Yolk:</strong> <b>${(amount_of_egg_yolk/1000).toFixed(6)} ml</b></div>
+          <div class="result-item"><strong>Albumin:</strong> <b>${(amount_of_albumin/1000).toFixed(6)} ml</b></div>
+          <div class="result-item"><strong>Choline:</strong> <b>${(amount_of_Choline/1000).toFixed(6)} ml</b></div>
+          <div class="result-item"><strong>Iron:</strong> <b>${(amount_of_iron/1000).toFixed(6)} ml</b></div>
+          <div class="result-item"><strong>Zinc:</strong> <b>${(amount_of_zinc/1000).toFixed(6)} ml</b></div>
+          <div class="result-item"><strong>Folic Acid:</strong> <b>${(amount_of_folic_acid*1e6).toFixed(8)} µl</b></div>
+          <div class="result-item"><strong>Vitamin B12:</strong> <b>${(amount_of_Vitamin_B12*1e6).toFixed(8)} µl</b></div>
+        </div>
+      `;
+    }
+  </script>
+</body>
+</html>
